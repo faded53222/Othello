@@ -97,8 +97,8 @@ class AI_player():
 			for i in range(4):
 				rand1=random.random()
 				rand2=random.random()
-				self.para[0].append(rand1*(i+1))
-				self.para[1].append(rand2*(i+1))
+				self.para[0].append(rand1*(i+1)*2)
+				self.para[1].append(rand2*(i+1)*2)
 	def merry_and_birth(self,another):
 		child_para=[[[],[]],[[],[]],[[],[]],[[],[]]]
 		tup=(self.para,another.para)
@@ -123,8 +123,8 @@ class AI_player():
 			if c4==0:
 				c4=-1
 			child_para[c1][c2][c3]=(1+c4*0.1*randp)*child_para[c1][c2][c3]
-			if child_para[c1][c2][c3]>c3+1:
-				child_para[c1][c2][c3]=c3+1
+			if child_para[c1][c2][c3]>2*(c3+1):
+				child_para[c1][c2][c3]=2*(c3+1)
 		for each in child_para:
 			new_child=AI_player(each)
 			AI_player_list.append(new_child)
@@ -143,10 +143,10 @@ class AI_player():
 				if detect_win()!=-2:
 					if wini==0:
 						win_sta.append(0)
-					elif (wini==1 and t==0) or (wini==-1 and t==1):
+					elif wini==1:
 						win_sta.append(1)
 					else:
-						win_sta.append(0)
+						win_sta.append(-1)
 					break
 				turn=(turn+1)%2
 				pos_pos[turn]=get_av_pos(turn)
@@ -264,21 +264,24 @@ def evaluate(turn,emp_para,ene_para):
 					break
 				if current_node.occupied==next_to:
 					l_count+=1
-					if l_count>2:
-						tempi=(l_count+1)*emp_para[2]/3
-					else:
-						tempi=emp_para[l_count]
-				elif current_node.occupied==0:
+					continue
+				if l_count>3:
+					tempi1=(l_count+1)*emp_para[3]/4
+					tempi2=(l_count+1)*ene_para[3]/4
+				else:
+					tempi1=emp_para[l_count]
+					tempi2=ene_para[l_count]
+				if current_node.occupied==0:
 					if next_to==turn+1:
-						val-=tempi
+						val-=tempi1
 					else:
-						val+=tempi
+						val+=tempi1
 					break
 				else:
 					if next_to==turn+1:
-						val-=tempi
+						val-=tempi2
 					else:
-						val+=tempi
+						val+=tempi2
 					break
 	return val
 def min_max(turn,depth,para,min_lim=100000):
@@ -286,7 +289,7 @@ def min_max(turn,depth,para,min_lim=100000):
 		valu=evaluate(turn,para[0],para[1])
 		return (valu,(-1,-1))
 	if depth==1:
-		maxi=-100000
+		maxi=-1000000
 		choici_keep=(-1,-1)
 		save()
 		av_pos=get_av_pos(turn)
@@ -303,16 +306,16 @@ def min_max(turn,depth,para,min_lim=100000):
 	choice_keep=(-1,-1)
 	ene_turn=(turn+1)%2
 	save()
-	av_pos1=get_av_pos(turn)
+	av_pos1=get_av_pos(turn)	
+	val2=0
 	for each in av_pos1:
 		pos_dic[each].occupy(turn+1)
 		save()
 		min_value=100000
 		jian2=0
 		av_pos3=get_av_pos(ene_turn)
-		if len(av_pos3)==0:
-			val2=evaluate(turn,para[0],para[1])
-			min_value=val2
+		val2=evaluate(turn,para[0],para[1])
+		min_value=val2
 		for each3 in av_pos3:
 			pos_dic[each3].occupy(ene_turn+1)
 			val2=min_max(turn,depth-2,para,min_value)[0]
@@ -334,8 +337,6 @@ def min_max(turn,depth,para,min_lim=100000):
 		if min_value!=100000 and min_value>max_value:
 			max_value=min_value
 			choice_keep=each
-			if choice_keep==-1:
-				print("!!!")
 	saved_list.pop()
 	return (max_value,choice_keep)	
 def AI_choice(turn,depth,para):
@@ -360,7 +361,7 @@ def championship(size,depth):
 			val_tup=AI_player_list[i].fight(AI_player_list[j],depth,0)
 			val=val_tup[0]+val_tup[1]
 			counts[i]+=val
-			counts[j]+=(2-val)
+			counts[j]+=(-1)*val
 	maxi=-10000
 	pos_keep=-1
 	for i in range(len(counts)):
@@ -483,26 +484,57 @@ def PVA(depth,para):
 				sys.exit()
 if __name__ == "__main__":
 	#PVP()
-	#para=[[0.1,0.2,0.3,0.4,0.5,0.6],[0.3,0.7,1.5,2.5,4,5]]
-	para=[[0.9923761532085755, 1.0755606336512566, 1.4110102054839753, 0.11896724667656411], [0.8868233707446636, 1.492909894844383, 0.8938174395222604, 2.415924882666762]]
-	PVA(4,para)
+	#para1=[[0.1,0.2,0.3,0.4,0.5,0.6],[0.3,0.7,1.5,2.5,4,5]]
+	#para1=[[0.9923761532085755, 1.0755606336512566, 1.4110102054839753, 0.11896724667656411], [0.8868233707446636, 1.492909894844383, 0.8938174395222604, 2.415924882666762]]
+	#para1=[[1.2017835240010657,3.7022457274835725,1.130839900359228,6.4871557166996245],[0.5225696085420768,3.12737927477561,3.353022527917836,3.409391800369196]]
+	#para1=[[0.8559520212400811,3.5261121688076025,5.983725759581107,5.654097808721165],[0.04612240430204295,2.1532144672397266,3.1742424484722775,4.243341471690093]]
+	#para0=[[0.9839934903138061,2.5042805034313,1.0261864038769661,1.522475259355227],[1.2723463473523684,0.3977391225428817,1.5399405097644265,4.725532934722527]]
+	para=[[0.9839934903138061,0.34018297112287765,1.0261864038769661,4.3603734964230565],[1.2723463473523684,0.3977391225428817,1.5399405097644265,4.725532934722527]]
+	#para2=[[0.9839934903138061,0.34018297112287765,1.0261864038769661,4.3603734964230565],[1.2723463473523684,0.3977391225428817,1.5399405097644265,4.725532934722527]]
+	PVA(5,para)
 	time.sleep(10)
 	##if os.path.exists('q_data.txt')==True:
 	##	load_q_data('q_data.txt')
+
+	paras=(para1,para2)
+	win_sta=[]
+	depth=2
+	for t in range(2):
+		init()
+		turn=t
+		while 1:
+			choice=AI_choice(turn,depth,paras[turn])[1]
+			pos_dic[choice].occupy(turn+1)
+			wini=detect_win()
+			if detect_win()!=-2:
+				if wini==0:
+					win_sta.append(0)
+				elif wini==1:
+					win_sta.append(1)
+				else:
+					win_sta.append(-1)
+				break
+			turn=(turn+1)%2
+			pos_pos[turn]=get_av_pos(turn)
+			if len(pos_pos[turn])==0:
+				turn=(turn+1)%2
+				pos_pos[turn]=get_av_pos(turn)
+	print(win_sta)
+	time.sleep(5)
+
 	'''
-	size=1000
+	size=2000
 	generation=50
 	depth=1
 	first_epoch=evolution(size,generation,depth)
-	time.sleep(10)
 	half_it(2)
-	generation2=30
+	generation2=50
 	size2=len(AI_player_list)
 	depth2=2
 	second_epoch=evolution(size2,generation2,depth2,AI_player_list)
 	best_para=championship(size2,2)
 	#best_para=championship(size,2)
-	with open('test4_para_'+str(size)+'_'+str(generation)+'_'+str(depth)+'.txt','w') as f:
+	with open('3test4_para_'+str(size)+'_'+str(generation2)+'_'+str(depth2)+'.txt','w') as f:
 		for i in best_para:
 			for j in i:
 				f.write(str(j)+'\n')
